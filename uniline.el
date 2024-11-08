@@ -1,4 +1,4 @@
-;;; uniline.el --- Draw UNICODE lines, boxes & arrows with the keyboard  -*- coding:utf-8; lexical-binding: t; -*-
+;;; uniline.el --- Draw UNICODE lines, boxes, arrows onto existing text -*- coding:utf-8; lexical-binding: t; -*-
 
 ;; Copyright (C) 2024  Thierry Banel
 
@@ -53,6 +53,10 @@
 ;; - JetBrains Mono
 ;; - Cascadia Mono
 ;; - Agave
+;; - JuliaMono
+;; - FreeMono
+;; - Iosevka Comfy Fixed
+;; - Source Code Pro
 ;;
 ;; Also, the encoding of the file must support UNICODE.
 ;; One way to do that, is to add a line like this one
@@ -294,18 +298,19 @@ range of [0..256).  It is handy to index vectors rather than
       ( ?╵ 1 0 0 0 )
       ( ?╹ 2 0 0 0 )
       ( ?╶ 0 1 0 0 )
-      ;;( ?└ 1 1 0 0 ) ;; prefer rounded corner
-      ( ?╰ 1 1 0 0 )
+      ( ?└ 1 1 0 0 )
+      ( ?╰ 1 1 0 0 ) ;; prefer rounded corner
       ( ?┖ 2 1 0 0 )
       ( ?╺ 0 2 0 0 )
       ( ?┕ 1 2 0 0 )
       ( ?┗ 2 2 0 0 )
       ( ?╷ 0 0 1 0 )
+      ;;( ?| 1 0 1 0 ) ;; recognize vertical ASCII pipe
       ( ?│ 1 0 1 0 )
       ( ?┃ 2 0 2 0 )
       ( ?╿ 2 0 1 0 )
-      ;;( ?┌ 0 1 1 0 ) ;; prefer rounded corner
-      ( ?╭ 0 1 1 0 )
+      ( ?┌ 0 1 1 0 )
+      ( ?╭ 0 1 1 0 ) ;; prefer rounded corner
       ( ?├ 1 1 1 0 )
       ( ?┞ 2 1 1 0 )
       ( ?┍ 0 2 1 0 )
@@ -320,20 +325,22 @@ range of [0..256).  It is handy to index vectors rather than
       ( ?┢ 1 2 2 0 )
       ( ?┣ 2 2 2 0 )
       ( ?╴ 0 0 0 1 )
-      ;;( ?┘ 1 0 0 1 ) ;; prefer rounded corner
-      ( ?╯ 1 0 0 1 )
+      ( ?┘ 1 0 0 1 )
+      ( ?╯ 1 0 0 1 ) ;; prefer rounded corner
       ( ?┚ 2 0 0 1 )
+      ;;( ?- 0 1 0 1 ) ;; recognize ASCII minus
       ( ?─ 0 1 0 1 )
       ( ?┴ 1 1 0 1 )
       ( ?┸ 2 1 0 1 )
       ( ?╼ 0 2 0 1 )
       ( ?┶ 1 2 0 1 )
       ( ?┺ 2 2 0 1 )
-      ;;( ?┐ 0 0 1 1 ) ;; prefer rounded corner
-      ( ?╮ 0 0 1 1 )
+      ( ?┐ 0 0 1 1 )
+      ( ?╮ 0 0 1 1 ) ;; prefer rounded corner
       ( ?┤ 1 0 1 1 )
       ( ?┦ 2 0 1 1 )
       ( ?┬ 0 1 1 1 )
+      ;;( ?+ 1 1 1 1 ) ;; recognize ASCII plus
       ( ?┼ 1 1 1 1 )
       ( ?╀ 2 1 1 1 )
       ( ?┮ 0 2 1 1 )
@@ -1788,9 +1795,9 @@ See `uniline--insert-glyph'."
 
 ;; END -- Automatically generated
 
-;;;╭───────────────╮
-;;;│User interfaces│
-;;;╰───────────────╯
+;;;╭────────────────╮
+;;;│Hydra interfaces│
+;;;╰────────────────╯
 
 (defun uniline-customize-face ()
   "Customize a temporary font to may-be set it for future sessions."
@@ -1839,7 +1846,28 @@ And backup previous settings."
   (overwrite-mode 1)
   (indent-tabs-mode 0)
   (setq truncate-lines t)
-  (setq cursor-type 'hollow))
+  (setq cursor-type 'hollow)
+  (let ((message-log-max))
+    (message
+     (replace-regexp-in-string
+      "([^)]*)"
+      (lambda (x)
+        (setq x (substring x 1 (1- (length x))))
+        (add-face-text-property
+         0 (length x)
+         'hydra-face-red
+         nil x)
+        x)
+      "\
+ ╭─()────────────╴Uniline╶╴mode╶────────────────────────╮
+ │      (→ ↓ ← ↑)          draw lines with current brush│
+ │(Ctrl  → ↓ ← ↑)          overwrite                    │
+ │(Shift → ↓ ← ↑)          extend selection             │
+ │(- + = # DEL RET)        change brush style           │
+ │(INS) without selection  insert glyphs, change font   │
+ │(INS) with    selection  handle rectangles            │
+ ╰─()───────────────────────────────────────────────────╯"
+      t))))
 
 (defun uniline--mode-post ()
   "Restore settings when exiting uniline mode."
